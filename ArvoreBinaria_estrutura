@@ -1,0 +1,97 @@
+//Aluno: Caio Ramalho de Faria
+#include <stdio.h>
+
+typedef struct No {                       //criacao da estrutura
+    int conteudo;  
+    struct No *dir;
+    struct No *esq;
+} No; 
+
+struct No *criarNo(int valor){
+  struct No *novoNo = (struct No*)malloc(sizeof(struct No));   //alocando memoria
+  
+  if(novoNo == NULL){                                          //tratamento de erro, nao pode ser nulo o no
+    printf("Erro, N nao pode ser nulo");
+    return 0;
+  }
+  
+  novoNo->conteudo = valor;                  //definindo valores do no criado, conteudo passado e filhos nullos
+  novoNo->dir = NULL;
+  novoNo->esq = NULL;
+  return novoNo;
+}
+
+struct No *inserir(struct No *arvore, int valor){
+  if(arvore == NULL){                              //checando se valor a ser inserido sera a raiz da arvore
+    arvore = criarNo(valor);
+  }
+  else{
+    if(arvore->conteudo < valor){                  //checando se valore inserido entra na esq ou dir
+        arvore->dir = inserir(arvore->dir, valor);
+    }
+    if(arvore->conteudo >= valor){
+        arvore->esq = inserir(arvore->esq, valor);
+    }
+  }
+  return arvore;
+}
+
+No* buscarNo(No* arvore, int x){
+  if(arvore == NULL){               // verificando se a árvore é vazia
+    printf("Arvore vazia");
+    return NULL;
+  }
+
+  if(arvore->conteudo == x){        // verificando se x esta na raiz
+    return arvore;
+  }
+
+          
+  if(arvore->conteudo == x){         //verificando se é o valor procurado
+    printf("Valor encontrado");
+  }
+  else if(x < arvore->conteudo){        //recursivamente buscando valores pela árvore da dir
+    buscarNo(arvore->esq, x);
+  }
+  else if(x > arvore->conteudo){         //recursivamente buscando valores pela árvore da esq
+    buscarNo(arvore->dir, x);
+  }
+    return NULL;                        //valor nao encontrado, retorna nulo
+  }
+
+struct No *remover(struct No *arvore, int x){
+  if(arvore == NULL){   //verificando se a arvore esta vazia
+    return NULL;
+  }
+
+  if(buscarNo(arvore, x) != NULL){     //se o no a ser removido for encontrado, sera liberado da memoria
+    if(arvore->esq != NULL && arvore->dir == NULL){         //se nao tiver filho dir, sera substituido pelo esq que sera liberado
+      arvore = arvore->esq;
+      free(arvore->esq);
+    }
+    else if(arvore->esq == NULL && arvore->dir != NULL){     //se nao tiver filho esq, sera substituido pelo dir que sera liberado
+      arvore = arvore->esq;
+      free(arvore->esq);
+    }
+    else{                        //se nao tiver filhos, somente sera removida, sem substituicao
+      free(arvore);
+    }
+    
+  }
+  return NULL;
+}
+
+
+int main(void) {
+  struct No *arvore = NULL;
+
+    inserir(arvore, 1);
+    inserir(arvore, 2);
+    inserir(arvore, 5);
+    inserir(arvore, 7);
+    inserir(arvore, 8);
+    inserir(arvore, 9);
+  
+  return 0;
+}
+
