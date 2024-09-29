@@ -1,1 +1,188 @@
-.
+#include <stdio.h>
+#include <stdlib.h>
+
+#define VERMELHO 0
+#define PRETO 1
+
+//Informacoes do no
+typedef struct No {
+    int dado;
+    int cor;
+    struct No *esquerda, *direita, *pai;
+} No;
+
+//Criar uma folha
+No *criarNo(int dado) {
+    No *novoNo = (No *)malloc(sizeof(No));
+    novoNo->dado = dado;
+    novoNo->cor = VERMELHO; 
+    novoNo->esquerda = novoNo->direita = novoNo->pai = NULL;
+    return novoNo;
+}
+
+//Rotacao LL
+void rotacaoEsquerda(No **raiz, No *x) {
+    No *y = x->direita;
+    x->direita = y->esquerda;
+
+    if (y->esquerda != NULL)
+        y->esquerda->pai = x;
+
+    y->pai = x->pai;
+
+    if (x->pai == NULL)
+        *raiz = y;
+    else if (x == x->pai->esquerda)
+        x->pai->esquerda = y;
+    else
+        x->pai->direita = y;
+
+    y->esquerda = x;
+    x->pai = y;
+}
+
+//Rotacao RR
+void rotacaoDireita(No **raiz, No *y) {
+    No *x = y->esquerda;
+    y->esquerda = x->direita;
+
+    if (x->direita != NULL)
+        x->direita->pai = y;
+
+    x->pai = y->pai;
+
+    if (y->pai == NULL)
+        *raiz = x;
+    else if (y == y->pai->esquerda)
+        y->pai->esquerda = x;
+    else
+        y->pai->direita = x;
+
+    x->direita = y;
+    y->pai = x;
+}
+
+//Rotacao LR
+void rotacaoLR(No **raiz, No *z) {
+    rotacaoEsquerda(raiz, z->esquerda);
+    rotacaoDireita(raiz, z);
+}
+
+//Rotacao RL
+void rotacaoRL(No **raiz, No *z) {
+    rotacaoDireita(raiz, z->direita);
+    rotacaoEsquerda(raiz, z);
+}
+
+// Balancemaneto da arvore
+void ajustarInsercao(No **raiz, No *z) {
+    No *pai = NULL;
+    No *avo = NULL;
+
+    while (z != *raiz && z->cor == VERMELHO && z->pai->cor == VERMELHO) {
+        pai = z->pai;
+        avo = z->pai->pai;
+
+        // Caso A: O pai de z é filho esquerdo do avô
+        if (pai == avo->esquerda) {
+            No *tio = avo->direita;
+
+            // Caso 1: O tio de z é vermelho
+            if (tio != NULL && tio->cor == VERMELHO) {
+                avo->cor = VERMELHO;
+                pai->cor = PRETO;
+                tio->cor = PRETO;
+                z = avo;
+            } else {
+                // Caso 2: z é o filho direito
+                if (z == pai->direita) {
+                    rotacaoEsquerda(raiz, pai);
+                    z = pai;
+                    pai = z->pai;
+                }
+
+                // Caso 3: z é o filho esquerdo
+                rotacaoDireita(raiz, avo);
+                int temp = pai->cor;
+                pai->cor = avo->cor;
+                avo->cor = temp;
+                z = pai;
+            }
+        }
+        // Caso B: O pai de z é filho direito do avô
+        else {
+            No *tio = avo->esquerda;
+
+            // Caso 1: O tio de z é vermelho
+            if (tio != NULL && tio->cor == VERMELHO) {
+                avo->cor = VERMELHO;
+                pai->cor = PRETO;
+                tio->cor = PRETO;
+                z = avo;
+            } else {
+                // Caso 2: z é o filho esquerdo
+                if (z == pai->esquerda) {
+                    rotacaoDireita(raiz, pai);
+                    z = pai;
+                    pai = z->pai;
+                }
+
+                // Caso 3: z é o filho direito
+                rotacaoEsquerda(raiz, avo);
+                int temp = pai->cor;
+                pai->cor = avo->cor;
+                avo->cor = temp;
+                z = pai;
+            }
+        }
+    }
+
+    (*raiz)->cor = PRETO;
+}
+
+//Adicionar folhas, ja criadas, na arvore
+void inserir(No **raiz, int dado) {
+    No *z = criarNo(dado);
+    No *y = NULL;
+    No *x = *raiz;
+
+    while (x != NULL) {
+        y = x;
+        if (z->dado < x->dado)
+            x = x->esquerda;
+        else
+            x = x->direita;
+    }
+
+    z->pai = y;
+    if (y == NULL)
+        *raiz = z;
+    else if (z->dado < y->dado)
+        y->esquerda = z;
+    else
+        y->direita = z;
+
+    ajustarInsercao(raiz, z);
+}
+
+//Printar avrore me ordem
+void emOrdem(No *raiz) {
+    if (raiz == NULL)
+        return;
+
+    emOrdem(raiz->esquerda);
+    printf("%d ", raiz->dado);
+    emOrdem(raiz->direita);
+}
+
+int main() {
+    No *raiz = NULL;
+    inserir(&raiz, 10);
+    inserir(&raiz, 212);
+    inserir(&raiz, 524);
+    inserir(&raiz, 125);
+    inserir(&raiz, 5);
+  emOrdem(raiz);
+
+    return 0;
+}
