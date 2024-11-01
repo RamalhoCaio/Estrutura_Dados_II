@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+//definindo o grau da arvore
+#define M 4 
+
+//Eestrutura do no
+struct No {
+    int conteudo; 
+    int chave[M-1];
+    struct No *folha[M]; 
+    bool eFolha;
+};
+
+// Crira no
+struct No *criarNo(bool eFolha) {
+    struct No *novoNo = (struct No *)malloc(sizeof(struct No));
+    if (novoNo == NULL) {
+        printf("Erro detectado");
+        exit(EXIT_FAILURE);
+    }
+    novoNo->conteudo = 0;
+    novoNo->eFolha = eFolha;
+    for (int i = 0; i < M; i++) {
+        novoNo->folha[i] = NULL;
+    }
+    return novoNo;
+}
+
+// Dividir fohas
+void separar(struct No *parent, int index) {
+    struct No *folha = parent->folha[index];
+    struct No *novoNo = criarNo(folha->eFolha);
+
+        novoNo->conteudo = M/2 - 1;
+
+    for (int i = 0; i < M/2 - 1; i++) {
+        novoNo->chave[i] = folha->chave[i + M/2];
+    }
+    if (!folha->eFolha) {
+        for (int i = 0; i < M/2; i++) {
+            novoNo->folha[i] = folha->folha[i + M/2];
+        }
+    }
+        folha->conteudo = M/2 - 1;
+    for (int i = parent->conteudo; i > index; i--) {
+        parent->folha[i + 1] = parent->folha[i];
+    }
+    parent->folha[index + 1] = novoNo;
+    for (int i = parent->conteudo - 1; i >= index; i--) {
+        parent->chave[i + 1] = parent->chave[i];
+    }
+
+    parent->chave[index] = folha->chave[M/2 - 1];
+    parent->conteudo++;
+}
+
+// Inserir num array nao cheio 
+void inserirVazio(struct No *no, int chave) {
+    int i = no->conteudo - 1;
+
+    if (no->eFolha) {
+        while (i >= 0 && no->chave[i] > chave) {
+                no->chave[i + 1] = no->chave[i];
+            i--;
+        }
+            no->chave[i + 1] = chave;
+            no->conteudo++;
+    } else {
+        while (i >= 0 && no->chave[i] > chave) {
+            i--;
+        }
+        i++;
+
+        if (no->folha[i]->conteudo == M - 1) {
+                separar(no, i);
+
+            if (no->chave[i] < chave) {
+                i++;
+            }
+        }
+            inserirVazio(no->folha[i], chave);
+    }
+}
+
+// Inserir valor
+void inserir(struct No **root, int chave) {
+    struct No *no = *root;
+
+    if (no == NULL) {
+        *root = criarNo(true);
+        (*root)->chave[0] = chave;
+        (*root)->conteudo = 1;
+    } else {
+        if (no->conteudo == M - 1) {
+            struct No *novoNo = criarNo(false);
+                novoNo->folha[0] = no;
+                separar(novoNo, 0);
+            *root = novoNo;
+        }
+            inserirVazio(*root, chave);
+    }
+}
+
+
+int main() {
+    struct No *root = NULL;
+    inserir(&root, 10);
+    return 0;
+}
